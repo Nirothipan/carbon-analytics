@@ -40,6 +40,10 @@ public class ComputeClasspath {
     private static final Log log = LogFactory.getLog(ComputeClasspath.class);
     private static final String SEP = System.getProperty("os.name").toLowerCase().contains("win") ? ";" : ":";
     private static final String CONF_DIRECTORY_PATH = "carbon.config.dir.path";
+    private static final String CARBON_EXTERNAL_LIB_PATH = "carbon.external.lib.dir.path";
+    private static final String CARBON_DROPINS_DIR_PATH = "carbon.dropins.dir.path";
+    private static final String CARBON_INTERNAL_DIR_PATH = "carbon.internal.lib.dir.path";
+    private static final String COMPONENTS_REPO = "components.repo";
 
     private static Set<String> additionalJars = new HashSet<>();
 
@@ -138,8 +142,18 @@ public class ComputeClasspath {
 
 
     private static String addJarsFromLib(String scp, String carbonHome, String separator) {
-        File libDir = new File(carbonHome + File.separator + "repository" + File.separator
-                               + "components" + File.separator + "lib");
+
+        String libDirectory = System.getProperty(CARBON_EXTERNAL_LIB_PATH);
+        File libDir;
+
+        if (libDirectory != null && !libDirectory.isEmpty()) {
+            libDir = new File(libDirectory);
+        } else {
+            libDir = new File(
+                    carbonHome + File.separator + "repository" + File.separator + "components" + File.separator
+                            + "lib");
+        }
+
         File[] libJars = listJars(libDir);
         return appendFilesToString(scp, libJars, separator);
     }
@@ -155,14 +169,33 @@ public class ComputeClasspath {
     }
 
     private static String addJarsFromDropins(String scp, String carbonHome, String separator) {
-        File libDir = new File(carbonHome + File.separator + "repository" + File.separator
-                               + "components" + File.separator + "dropins");
+
+        String dropinDirectory = System.getProperty(CARBON_DROPINS_DIR_PATH);
+        File libDir;
+
+        if ((dropinDirectory != null) && !dropinDirectory.isEmpty()) {
+            libDir = new File(dropinDirectory);
+        } else {
+            libDir = new File(
+                    carbonHome + File.separator + "repository" + File.separator + "components" + File.separator
+                            + "dropins");
+        }
+
         File[] libJars = listJars(libDir);
         return appendFilesToString(scp, libJars, separator);
     }
 
     private static String addJarsFromEndorsedLib(String scp, String carbonHome, String separator) {
-        File libDir = new File(carbonHome + File.separator + "lib" + File.separator + "endorsed");
+
+        String internalLibDirectory = System.getProperty(CARBON_INTERNAL_DIR_PATH);
+        File libDir;
+
+        if (internalLibDirectory != null && !internalLibDirectory.isEmpty()) {
+            libDir = new File(internalLibDirectory + File.separator + "endorsed");
+        } else {
+            libDir = new File(System.getProperty("carbon.internal.lib.dir.path") + File.separator + "endorsed");
+        }
+
         File[] libJars = listJars(libDir);
         return appendFilesToString(scp, libJars, separator);
     }
@@ -245,8 +278,19 @@ public class ComputeClasspath {
     private static String createInitialSparkClasspath(String sparkClasspath, String carbonHome,
                                                       Set<String> requiredJars, String separator,
                                                       String[] excludeJars) {
-        File pluginsDir = new File(carbonHome + File.separator + "repository" + File.separator + "components" +
-                                   File.separator + "plugins");
+
+        String pluginsDirectory = System.getProperty(COMPONENTS_REPO);
+        File pluginsDir;
+
+        if (pluginsDirectory != null && !pluginsDirectory.isEmpty()) {
+            pluginsDir = new File(pluginsDirectory);
+        } else {
+            pluginsDir = new File(
+                    carbonHome + File.separator + "repository" + File.separator + "components" + File.separator
+                            + "plugins");
+
+        }
+
         File[] pluginJars = listJars(pluginsDir);
         StringBuilder buf = new StringBuilder();
 
